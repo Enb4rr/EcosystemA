@@ -18,6 +18,7 @@ public abstract class AnimalRefactor : MonoBehaviour
     private AnimalRaze raze;
     private AnimalSex sex;
     private Behaviour foodType;
+    private AnimalRaze predator;
     private float energy;
 
     //Animal Stats
@@ -26,12 +27,13 @@ public abstract class AnimalRefactor : MonoBehaviour
     private float velocity;
     private float topSpeed;
 
-    protected AnimalRefactor(AnimalRaze raze, AnimalSex sex, Behaviour foodType, float energy)
+    protected AnimalRefactor(AnimalRaze raze, AnimalSex sex, Behaviour foodType, AnimalRaze predator, float energy)
     {
         Raze = raze;
         Sex = sex;
         FoodType = foodType;
         Energy = energy;
+        Predator = predator;
     }
 
     #endregion
@@ -40,6 +42,7 @@ public abstract class AnimalRefactor : MonoBehaviour
     public AnimalRaze Raze { get => raze; set => raze = value; }
     public AnimalSex Sex { get => sex; set => sex = value; }
     public Behaviour FoodType { get => foodType; set => foodType = value; }
+    public AnimalRaze Predator { get => predator; set => predator = value; }
     public float Energy { get => energy; set => energy = value; }
     public float Acceleration { get => acceleration; set => acceleration = value; }
     public float Velocity { get => velocity; set => velocity = value; }
@@ -95,4 +98,4 @@ public abstract class AnimalRefactor : MonoBehaviour
 public enum AnimalRaze { Monkey, Fly, Snake }
 public enum AnimalSex { Male, Female }
 public enum Behaviour { Carnivorous, Herbivorous, Omnivorous }
-public enum AnimalState { Idle, Eating, SearchingFood, Moving, Dead, Playing, Running }
+public enum AnimalState { Idle, Eating, Moving, Dead, Playing, Running }
