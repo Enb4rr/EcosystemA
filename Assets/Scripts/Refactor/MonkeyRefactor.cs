@@ -12,7 +12,11 @@ public class MonkeyRefactor : AnimalRefactor
     private Rigidbody body;
     private Animator animator;
 
-    //Generate variables that are not set in constructor
+    //Animal variables
+    [SerializeField] AnimalState state;
+    public GameObject target;
+
+    //Generate monkey
     public MonkeyRefactor(AnimalRaze raze, AnimalSex sex, Behaviour foodType, float energy) : base(raze, sex, foodType, energy)
     {
         Acceleration = 0;
@@ -22,31 +26,55 @@ public class MonkeyRefactor : AnimalRefactor
 
     private void Awake()
     {
+        Initialize();
+
         //Get required components from GameObject
         boxCollider = GetComponent<BoxCollider>();
         sphereCollider = GetComponent<SphereCollider>();
         body = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
+
+        state = AnimalState.Idle;
     }
 
-    private void Start()
+    private void FixedUpdate()
     {
-        StartCoroutine(HandleAnimalBehaviour());
+        if (state == AnimalState.Dead) return;
+       
+        Debug.Log("Animal energy: " + Energy);
+
+        //Check energy
+        if (Energy <= 50)
+        {
+            state = AnimalState.SearchingFood;
+            HandleHungry();
+        }
+
+        //Handle other states
+        if (state == AnimalState.Idle) HandleAnimalBehaviour();
+        else if (state == AnimalState.Playing) HandleSwinging();
+        else if (state == AnimalState.Running) HandleAttack();
+
+        //Energy loss
+        EnergyLoss();
+    }
+
+    public override void Initialize()
+    {
+        Raze = AnimalRaze.Monkey;
+        int randomIndex = Random.Range(0, 1);
+        if (randomIndex == 0) Sex = AnimalSex.Male;
+        else Sex = AnimalSex.Female;
+        FoodType = Behaviour.Herbivorous;
+        Energy = 100;
     }
 
     //Handle monkey loop behaviour
-    public override IEnumerator HandleAnimalBehaviour()
+    public override void HandleAnimalBehaviour()
     {
-        //Start a loop movement where the monkey moves to random positions with basic movement, react to collisions
+        //Start a movement where the monkey moves to random positions with basic movement, react to collisions
         //After each interaction with collisions monkey must return to HandleAnimalBehaviour() state
-
-        while(true)
-        {
-            Debug.Log("Handling behaviour");
-            EnergyLoss();
-            yield return new WaitForSeconds(1);
-            //yield return null;
-        }
+        Debug.Log("Handling behaviour");
     }
 
     //Handle move coroutine
@@ -56,33 +84,35 @@ public class MonkeyRefactor : AnimalRefactor
     }
 
     //Handle swinging coroutine
-    public override IEnumerator HandleSwinging(float waitTime)
+    public override void HandleSwinging()
     {
-        return base.HandleSwinging(waitTime);
     }
 
     //Handle being attacked coroutine, use base movement to move to new direction
-    public override IEnumerator HandleAttack(float waitTime)
+    public override void HandleAttack()
     {
-        return base.HandleAttack(waitTime);
     }
 
     //Handle hungry state, look for nearest tree, move to that direction using base movement
-    public override IEnumerator HandleHungry(float waitTime)
+    public override void HandleHungry()
     {
-        return base.HandleHungry(waitTime);
     }
 
     //Handle death
     public override void HandleDeath()
     {
-        throw new System.NotImplementedException();
+        Debug.Log("Animal is dead");
+        state = AnimalState.Dead;
     }
 
     public override void EnergyLoss()
     {
         //Lose 1 energy each second
-        Energy--;
-        if(Energy <= 0) HandleDeath();
+        Energy -= Time.deltaTime;
+        if (Energy <= 0) 
+        {
+            StopAllCoroutines();
+            HandleDeath();
+        }
     }
 }

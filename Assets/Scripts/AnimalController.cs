@@ -59,7 +59,6 @@ public class AnimalController : MonoBehaviour
     }
     void FixedUpdate()
     {
-        
         if (animal._energy <= 0 && currentState != animalState.dead)
         {
             HandleDeath();

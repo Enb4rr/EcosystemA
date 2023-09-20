@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Handles Animal master class, all animals are children of this class
+/// </summary>
 [RequireComponent(typeof(BoxCollider))]
 [RequireComponent(typeof(SphereCollider))]
 [RequireComponent(typeof(Rigidbody))]
@@ -46,7 +49,9 @@ public abstract class AnimalRefactor : MonoBehaviour
 
     #region Functions
 
-    public abstract IEnumerator HandleAnimalBehaviour();
+    public abstract void Initialize();
+
+    public abstract void HandleAnimalBehaviour();
 
     public abstract IEnumerator HandleMovement(float waitTime, Vector3 targetPosition);
 
@@ -65,19 +70,19 @@ public abstract class AnimalRefactor : MonoBehaviour
         }
     }
 
-    public virtual IEnumerator HandleSwinging(float waitTime)
+    public virtual void HandleSwinging()
     {
-        yield return new WaitForSeconds(waitTime);
+        throw new System.Exception("Unimplemented method");
     }
 
-    public virtual IEnumerator HandleAttack(float waitTime)
+    public virtual void HandleAttack()
     {
-        yield return new WaitForSeconds(waitTime);
+        throw new System.Exception("Unimplemented method");
     }
 
-    public virtual IEnumerator HandleHungry(float waitTime)
+    public virtual void HandleHungry()
     {
-        yield return new WaitForSeconds(-waitTime);
+        throw new System.Exception("Unimplemented method");
     }
 
     public abstract void HandleDeath();
@@ -90,3 +95,4 @@ public abstract class AnimalRefactor : MonoBehaviour
 public enum AnimalRaze { Monkey, Fly, Snake }
 public enum AnimalSex { Male, Female }
 public enum Behaviour { Carnivorous, Herbivorous, Omnivorous }
+public enum AnimalState { Idle, Eating, SearchingFood, Moving, Dead, Playing, Running }

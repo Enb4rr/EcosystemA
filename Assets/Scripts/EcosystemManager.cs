@@ -41,7 +41,7 @@ public class EcosystemManager : MonoBehaviour
         }
         if (specie == AnimalSpecie.Monkey)
         {
-            Monkey instance= new Monkey(30, sex, MonkeyPrefab, 50f);
+            Monkey instance = new Monkey(30, sex, MonkeyPrefab, 50f);
             Monkeys.Add(instance._Animal);
         }
     }
