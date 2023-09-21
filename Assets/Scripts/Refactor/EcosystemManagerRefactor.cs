@@ -6,16 +6,23 @@ using static UnityEngine.EventSystems.EventTrigger;
 public class EcosystemManagerRefactor : MonoBehaviour
 {
     [SerializeField] GameObject MonkeyPrefab;
+    [SerializeField] GameObject SnakePrefab;
+    [SerializeField] GameObject FlyPrefab;
     [SerializeField] GameObject[] trees;
     [SerializeField] GameObject TreesParent;
     [SerializeField] private int amountMonkeys;
+    [SerializeField] private int amountSnakes;
+    [SerializeField] private int amountFlies;
     [SerializeField] private int amountTrees;
-    private List<GameObject> Monkeys;
+    private List<GameObject> Monkeys = new List<GameObject>();
+    private List<GameObject> Snakes = new List<GameObject>();
+    private List<GameObject> Flies = new List<GameObject>();
 
     private void Awake()
     {
-        Monkeys = new List<GameObject>();
         for (int i = 0; i < amountMonkeys; i++) InstantiateAnimal(AnimalRaze.Monkey);
+        for (int i = 0; i < amountSnakes; i++) InstantiateAnimal(AnimalRaze.Snake);
+        for (int i = 0; i < amountFlies; i++) InstantiateAnimal(AnimalRaze.Fly);
         for (int i = 0; i < amountTrees; i++) InstantiateTrees();
     }
 
@@ -26,6 +33,18 @@ public class EcosystemManagerRefactor : MonoBehaviour
             Vector3 randomPosition = new Vector3(Random.Range(-100, 100), 0, Random.Range(-100, 100));
             var instace = Instantiate(MonkeyPrefab, randomPosition, Quaternion.identity);
             Monkeys.Add(instace);
+        }
+        else if (specie == AnimalRaze.Snake)
+        {
+            Vector3 randomPosition = new Vector3(Random.Range(-20, 20), 0, Random.Range(-20, 20));
+            var instace = Instantiate(SnakePrefab, randomPosition, Quaternion.identity);
+            Snakes.Add(instace);
+        }
+        else if (specie == AnimalRaze.Fly)
+        {
+            Vector3 randomPosition = new Vector3(Random.Range(-80, 20), 0, Random.Range(-80, 20));
+            var instace = Instantiate(FlyPrefab, randomPosition, Quaternion.identity);
+            Flies.Add(instace);
         }
     }
 

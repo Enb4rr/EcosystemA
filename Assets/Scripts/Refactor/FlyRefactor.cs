@@ -1,11 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEditorInternal.VR;
 using UnityEngine;
-using static UnityEditor.FilePathAttribute;
 
-public class MonkeyRefactor : AnimalRefactor
+public class FlyRefactor : AnimalRefactor
 {
     //This code goes in a prefab, it must have the components that are marked as required in base class
 
@@ -19,17 +17,15 @@ public class MonkeyRefactor : AnimalRefactor
     public GameObject target;
     [SerializeField] Material deathMaterial;
 
-    //Swing Variables 
-    [SerializeField] private float aVelocity;
-    [SerializeField] private float aAcceleration;
-    [SerializeField] private float damping;
-    [SerializeField] private float radious;
-    [SerializeField] private float angle;
+    //Spring Variables 
+    float anchorPosition = 5;
+    float springConstantK = 3.5f;
+    float restLength = 0.5f;
     //Timers
     private float randomDirectionTimer = 0;
-    private float randomDirectionTime =1;
+    private float randomDirectionTime = 1;
     //Generate monkey
-    public MonkeyRefactor(AnimalRaze raze, AnimalSex sex, Behaviour foodType, AnimalRaze predator, float energy) : base(raze, sex, foodType, predator, energy)
+    public FlyRefactor(AnimalRaze raze, AnimalSex sex, Behaviour foodType, AnimalRaze predator, float energy) : base(raze, sex, foodType, predator, energy)
     {
     }
 
@@ -45,7 +41,15 @@ public class MonkeyRefactor : AnimalRefactor
 
         state = AnimalState.Idle;
     }
-
+    private void Update()
+    {
+        if(Input.GetMouseButtonDown(0))
+        {
+            Vector3 newPos = transform.position;
+            newPos.y -= 1.5f;
+            transform.position = newPos;    
+        }
+    }
     private void FixedUpdate()
     {
         //Check if dead
@@ -56,7 +60,6 @@ public class MonkeyRefactor : AnimalRefactor
 
         //Handle other states
         if (state == AnimalState.Idle) HandleAnimalBehaviour();
-        else if (state == AnimalState.Playing) HandleSwinging();
         else if (state == AnimalState.Running) HandleAttack();
 
         //Energy loss
@@ -68,28 +71,33 @@ public class MonkeyRefactor : AnimalRefactor
         if (state == AnimalState.Dead) return;
         var animalComponent = other.GetComponent<AnimalRefactor>();
 
-        if (animalComponent == null) 
+        if (animalComponent == null)
         {
-            if (other.CompareTag("Tree"))
+
+        }
+        else if (animalComponent != null)
+        {
+            if (other.CompareTag("Monkey") )
             {
-                if (Energy > 80) 
-                {
-                    target = other.gameObject;
-                    state = AnimalState.Playing;
-                }
-                else if (Energy <= 40)
+                if (Energy <= 60 && other.GetComponent<MonkeyRefactor>().state == AnimalState.Dead)
                 {
                     target = other.gameObject;
                     state = AnimalState.Eating;
                     HandleHunger();
                 }
             }
-        }
-        else if(animalComponent != null)
-        {
-            Debug.Log("Runnig from a target");
+            else if (other.CompareTag("Snake"))
+            {
+                if (Energy <= 60 && other.GetComponent<SnakeRefactor>().state == AnimalState.Dead)
+                {
+                    target = other.gameObject;
+                    state = AnimalState.Eating;
+                    HandleHunger();
+                }
+            }
             if (animalComponent.Raze == Predator)
             {
+                Debug.Log("Runnig from a target");
                 target = other.gameObject;
                 state = AnimalState.Running;
             }
@@ -102,17 +110,9 @@ public class MonkeyRefactor : AnimalRefactor
         var animalComponent = other.GetComponent<AnimalRefactor>();
         if (animalComponent == null)
         {
-            if (other.CompareTag("Tree"))
+            if (other.CompareTag("Monkey") || other.CompareTag("Snake"))
             {
-                if(state == AnimalState.Playing)
-                {
-                    //Reset the animal position y
-                    state = AnimalState.Idle;
-                    Vector3 outPosition = new Vector3(transform.position.x, 0, transform.position.z);
-                    transform.position = outPosition;
-                    target = null;
-                }
-                else if (state == AnimalState.Eating)
+                if (state == AnimalState.Eating)
                 {
                     state = AnimalState.Idle;
                     target = null;
@@ -130,21 +130,21 @@ public class MonkeyRefactor : AnimalRefactor
     }
     public override void Initialize()
     {
-        Raze = AnimalRaze.Monkey;
+        Raze = AnimalRaze.Fly;
         int randomIndex = Random.Range(0, 1);
         if (randomIndex == 0) Sex = AnimalSex.Male;
         else Sex = AnimalSex.Female;
-        FoodType = Behaviour.Herbivorous;
-        Predator = AnimalRaze.Snake;
+        FoodType = Behaviour.Carnivorous;
+        Predator = AnimalRaze.None;
         Energy = 100;
     }
 
-    //Handle monkey loop behaviour
+    //Handle Fly loop behaviour
     public override void HandleAnimalBehaviour()
     {
-        //Start a movement where the monkey moves to random positions with basic movement, react to collisions
+        //Start a movement where the fly moves to random positions with basic movement, react to collisions
         HandleMovement(Vector3.zero);
-        //After each interaction with collisions monkey must return to HandleAnimalBehaviour() state
+        //After each interaction with collisions fly must return to HandleAnimalBehaviour() state
     }
 
     //Handle move coroutine
@@ -160,44 +160,42 @@ public class MonkeyRefactor : AnimalRefactor
             Acceleration = CalculateDirection(targetPosition);
             if (state == AnimalState.Running) Acceleration *= -1;
         }
-        else if(randomDirectionTimer>= randomDirectionTime)// calculate random direction 
+        else if (randomDirectionTimer >= randomDirectionTime)// calculate random direction 
         {
             randomDirectionTime = Random.Range(1, 3);
             randomDirectionTimer = 0;
-            Vector3 randomDirection = new Vector3(Random.Range(-100f, 100f), 0, Random.Range(-100f, 100f));
+            Vector3 randomDirection = new Vector3(Random.Range(-100f, 100f), 0,  Random.Range(-100f, 100f));
             Acceleration = randomDirection.normalized;
         }
         if (Velocity.magnitude >= 3.5)
         {
             Velocity *= 0.6f;
         }
-        Velocity += Acceleration;
-        //CheckEdges();
 
-        transform.position += Velocity * Time.deltaTime/4;
-        transform.position = new Vector3(transform.position.x, 0, transform.position.z);
+
+        //CheckEdges();
+        //Spring Behaviour;
+        Vector3 force = new Vector3(0, transform.position.y - 5,0);
+        Debug.Log(force);
+        float currentLength = force.magnitude;
+        float stretchLength = currentLength - restLength;
+        force = -force * 0.1f * stretchLength;
+        Acceleration += force;
+        Acceleration *= 0.9f;
+        Velocity += Acceleration;
+        //body.AddForce(Acceleration,ForceMode.Acceleration);
+        //body.AddForce(force, ForceMode.Impulse);
+        if(Velocity.magnitude > 100)
+        {
+            Velocity.Normalize();
+            Velocity *= 100;
+        }
+        body.position += Velocity * Time.deltaTime / 4;
         float angle = Mathf.Atan2(Velocity.x, Velocity.z);
         Turn(angle);
         Debug.DrawRay(gameObject.transform.position, Acceleration * 4);
     }
 
-    //Handle swinging coroutine
-    public override void HandleSwinging()
-    {
-        Vector3 swingOrigin = target.transform.position;
-        swingOrigin.y += radious;
-        aAcceleration = (-4f / radious) * Mathf.Sin(angle);
-        aVelocity += aAcceleration * Time.deltaTime;
-        aVelocity *= damping;
-
-        angle += aVelocity*Time.deltaTime;
-
-        float y = swingOrigin.y + radious * Mathf.Sin(angle - 90 * Mathf.Deg2Rad);
-        float z = swingOrigin.z + radious * Mathf.Cos(angle - 90 * Mathf.Deg2Rad);
-
-        transform.localPosition = new Vector3(transform.position.x, y, z);
-       
-    }
     //Handle being attacked coroutine, use base movement to move to new direction
     public override void HandleAttack()
     {
@@ -205,11 +203,11 @@ public class MonkeyRefactor : AnimalRefactor
         HandleMovement(target.transform.position);
     }
 
-    //Handle hungry state, look for nearest tree, move to that direction using base movement
+    //Handle hungry state, look for nearest dead body, move to that direction using base movement
     public override void HandleHunger()
     {
         Eat(3);
-        Debug.Log("food Eat + energy"+ Energy);
+        Debug.Log("food Eat + energy" + Energy);
         HandleMovement(target.transform.position);
         if (Energy >= 100)
         {
@@ -236,7 +234,7 @@ public class MonkeyRefactor : AnimalRefactor
     {
         //Lose 1 energy each second
         Energy -= Time.deltaTime;
-        if (Energy <= 0) 
+        if (Energy <= 0)
         {
             StopAllCoroutines();
             HandleDeath();

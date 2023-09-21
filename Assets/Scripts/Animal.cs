@@ -84,7 +84,7 @@ public class Monkey : Animal
     //Pendulum fields
     Vector3 alocation;
     public Vector3 origin = new Vector3(0, 0, 0);
-    public float r =3;
+    public float radio =3;
     public float angle = 60*Mathf.Deg2Rad;
     public float aVelocity = 0f;
     public float aAcceleration;
@@ -146,14 +146,14 @@ public class Monkey : Animal
     public override void Swing(Vector3 swingOrigin)
     {
         swingOrigin.y +=5f;
-        aAcceleration = (-4f / r) * Mathf.Sin(angle);
+        aAcceleration = (-4f / radio) * Mathf.Sin(angle);
         aVelocity += aAcceleration * Time.deltaTime;
         aVelocity *= damping;
 
         angle += aVelocity * Time.deltaTime;
 
-        float y = swingOrigin.y + r * Mathf.Sin(angle- 90 * Mathf.Deg2Rad);
-        float z = swingOrigin.z + r * Mathf.Cos(angle- 90 * Mathf.Deg2Rad);
+        float y = swingOrigin.y + radio * Mathf.Sin(angle- 90 * Mathf.Deg2Rad);
+        float z = swingOrigin.z + radio * Mathf.Cos(angle- 90 * Mathf.Deg2Rad);
 
         _location = new Vector3(_location.x, y, z);
         _animal.transform.localPosition = _location;
